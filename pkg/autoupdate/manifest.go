@@ -31,9 +31,9 @@ func (m *Manifest) NeedsUpdate(version string) bool {
 	return version != m.Version
 }
 
-func (m *Manifest) BinaryURL() (string, error) {
+func (m *Manifest) BinaryURLArch(arch string) (string, error) {
 	var res string
-	switch runtime.GOARCH {
+	switch arch {
 	case "arm":
 		res = m.ARM
 	case "amd64":
@@ -42,6 +42,30 @@ func (m *Manifest) BinaryURL() (string, error) {
 		return "", fmt.Errorf("unsupported architecture: %s", runtime.GOARCH)
 	}
 	return res, nil
+}
+
+func (m *Manifest) BinaryURL() (string, error) {
+	return m.BinaryURLArch(runtime.GOARCH)
+}
+
+func (m *Manifest) DownloadBinaryArch(arch string) ([]byte, error) {
+	binaryURL, err := m.BinaryURLArch(arch)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.Get(binaryURL)
+	if err != nil {
+		return nil, fmt.Errorf("http.Get(%q): %v", binaryURL, err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch a new binary from %q: %v", binaryURL, err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("unexpected HTTP status: %s %d.", resp.Status, resp.StatusCode)
+	}
+	return body, nil
 }
 
 func (m *Manifest) QualifyBinary(binaryPath string) error {
@@ -117,22 +141,7 @@ func UpdateCurrentBinaryIfNeeded(manifestURL, version string) (needsRestart bool
 		return false, nil
 	}
 	// Fetch the binary.
-	binaryURL, err := m.BinaryURL()
-	if err != nil {
-		return false, err
-	}
-	resp, err := http.Get(binaryURL)
-	if err != nil {
-		return false, fmt.Errorf("http.Get(%q): %v", binaryURL, err)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return false, fmt.Errorf("failed to fetch a new binary from %q: %v", binaryURL, err)
-	}
-	if resp.StatusCode != 200 {
-		return false, fmt.Errorf("unexpected HTTP status: %s %d.", resp.Status, resp.StatusCode)
-	}
+	binary, err := m.DownloadBinaryArch(runtime.GOARCH)
 	// Detecting currently running binary.
 	curBinaryPath, err := os.Executable()
 	if err != nil {
@@ -141,7 +150,7 @@ func UpdateCurrentBinaryIfNeeded(manifestURL, version string) (needsRestart bool
 	log.Printf("Current executable path: %s\n", curBinaryPath)
 	newBinaryPath := curBinaryPath + ".new"
 	// Save the new binary.
-	if err := ioutil.WriteFile(newBinaryPath, body, 0755); err != nil {
+	if err := ioutil.WriteFile(newBinaryPath, binary, 0755); err != nil {
 		return false, fmt.Errorf("failed to save the new binary: %v", err)
 	}
 	// Check the new binary version (as well as the ability to run on the current computer).
@@ -163,4 +172,12 @@ func UpdateCurrentBinaryIfNeeded(manifestURL, version string) (needsRestart bool
 	}
 	// We have updated the binary and need to restart.
 	return true, nil
+}
+
+func GetLatestProdBinaryArch(arch string) ([]byte, error) {
+	m, err := FetchAndParseManifest(ProdManifestURL)
+	if err != nil {
+		return nil, err
+	}
+	return m.DownloadBinaryArch(arch)
 }
