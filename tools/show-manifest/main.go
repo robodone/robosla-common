@@ -20,4 +20,9 @@ func main() {
 	}
 	fmt.Println(m)
 	fmt.Printf("NeedsUpdate: %v\n", m.NeedsUpdate(*version))
+	needsRestart, err := autoupdate.UpdateCurrentBinaryIfNeeded(autoupdate.ProdManifestURL, *version)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("NeedsRestart: %v\n", needsRestart)
 }

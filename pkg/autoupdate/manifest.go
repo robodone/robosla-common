@@ -2,11 +2,16 @@ package autoupdate
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"os/exec"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -24,6 +29,36 @@ func (m *Manifest) NeedsUpdate(version string) bool {
 		return false
 	}
 	return version != m.Version
+}
+
+func (m *Manifest) BinaryURL() (string, error) {
+	var res string
+	switch runtime.GOARCH {
+	case "arm":
+		res = m.ARM
+	case "amd64":
+		res = m.AMD64
+	default:
+		return "", fmt.Errorf("unsupported architecture: %s", runtime.GOARCH)
+	}
+	return res, nil
+}
+
+func (m *Manifest) QualifyBinary(binaryPath string) error {
+	data, err := exec.Command(binaryPath, "--version").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to run %s --version, err: %v\ncombined output:\n%s",
+			binaryPath, err, string(data))
+	}
+	binaryVersion := strings.TrimSpace(string(data))
+	if m.Version != binaryVersion {
+		return fmt.Errorf("version mismatch. Want: %q, got: %q", m.Version, binaryVersion)
+	}
+	// While it's certainly not a comprehensive test, at least we know that the binary
+	// can run on the current system and that the version matches.
+	// TODO(krasin): check binary hash (need to put it into the manifest first)
+	// TODO(krasin): check that the binary can access network.
+	return nil
 }
 
 func IsDevBuild(version string) bool {
@@ -52,6 +87,10 @@ func FetchAndParseManifest(manifestURL string) (*Manifest, error) {
 		return nil, fmt.Errorf("failed to fetch manifest from %q: %v", manifestURL, err)
 	}
 	if resp.StatusCode != 200 {
+		if resp.StatusCode >= 400 {
+			// Definitely not good
+			return nil, fmt.Errorf("HTTP error while fetching a manifest from %q: %s %d", manifestURL, resp.Status, resp.StatusCode)
+		}
 		log.Printf("unexpected HTTP status: %s %d. Trying to parse the manifest anyway.", resp.Status, resp.StatusCode)
 	}
 	var res Manifest
@@ -61,5 +100,67 @@ func FetchAndParseManifest(manifestURL string) (*Manifest, error) {
 		}
 		return nil, fmt.Errorf("failed to parse manifest json: %v", err)
 	}
+	if res.Version == "" {
+		return nil, errors.New("invalid manifest: missing version")
+	}
 	return &res, nil
+}
+
+func UpdateCurrentBinaryIfNeeded(manifestURL, version string) (needsRestart bool, err error) {
+	// Fetch manifest
+	m, err := FetchAndParseManifest(manifestURL)
+	if err != nil {
+		return false, fmt.Errorf("FetchAndParseManifest(%q): %v", manifestURL, err)
+	}
+	// Check, if we need to update the currently running binary.
+	if !m.NeedsUpdate(version) {
+		return false, nil
+	}
+	// Fetch the binary.
+	binaryURL, err := m.BinaryURL()
+	if err != nil {
+		return false, err
+	}
+	resp, err := http.Get(binaryURL)
+	if err != nil {
+		return false, fmt.Errorf("http.Get(%q): %v", binaryURL, err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, fmt.Errorf("failed to fetch a new binary from %q: %v", binaryURL, err)
+	}
+	if resp.StatusCode != 200 {
+		return false, fmt.Errorf("unexpected HTTP status: %s %d.", resp.Status, resp.StatusCode)
+	}
+	// Detecting currently running binary.
+	curBinaryPath, err := os.Executable()
+	if err != nil {
+		return false, fmt.Errorf("failed to get the path to the currently running executable: %v", err)
+	}
+	log.Printf("Current executable path: %s\n", curBinaryPath)
+	newBinaryPath := curBinaryPath + ".new"
+	// Save the new binary.
+	if err := ioutil.WriteFile(newBinaryPath, body, 0755); err != nil {
+		return false, fmt.Errorf("failed to save the new binary: %v", err)
+	}
+	// Check the new binary version (as well as the ability to run on the current computer).
+	if err := m.QualifyBinary(newBinaryPath); err != nil {
+		return false, fmt.Errorf("failed to quality the new binary %s: %v", newBinaryPath, err)
+	}
+	// Rename current binary to old.
+	oldBinaryPath := curBinaryPath + ".old"
+	if err := os.Rename(curBinaryPath, oldBinaryPath); err != nil {
+		return false, fmt.Errorf("failed to rename current binary (%s) into the old one (%s): %v",
+			curBinaryPath, oldBinaryPath, err)
+	}
+	// Rename new binary to the current.
+	if err := os.Rename(newBinaryPath, curBinaryPath); err != nil {
+		// Make best effort to rename old binary to the current one.
+		os.Rename(oldBinaryPath, curBinaryPath)
+		return false, fmt.Errorf("failed to rename new binary (%s) into the current one (%s): %v",
+			newBinaryPath, curBinaryPath, err)
+	}
+	// We have updated the binary and need to restart.
+	return true, nil
 }
