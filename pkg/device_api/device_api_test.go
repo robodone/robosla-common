@@ -81,7 +81,6 @@ func TestHelloOK(t *testing.T) {
 		}
 	}()
 
-	//t.Fatalf("TestHelloOK, 100")
 	client := NewClient(conn1)
 	defer client.Stop()
 
@@ -91,11 +90,9 @@ func TestHelloOK(t *testing.T) {
 	}
 	defer sub.Unsub()
 
-	//t.Fatalf("TestHelloOK, 200")
 	if err := client.Hello(TestGoodCookie); err != nil {
 		t.Fatalf("Failed to send hello: %v", err)
 	}
-	//t.Fatalf("TestHelloOK, 300")
 	select {
 	case deviceName := <-sub.C():
 		if deviceName != TestDeviceName {
