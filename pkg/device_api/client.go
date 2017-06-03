@@ -47,6 +47,31 @@ func (c *Client) Stop() error {
 	return nil
 }
 
+func (c *Client) sendRegisterDevice(cookie string) error {
+	return send(c.conn, &Request{
+		Cmd:    "register-device",
+		Cookie: cookie,
+	})
+}
+
+func (c *Client) RegisterDevice(userCookie string) (deviceCookie string, err error) {
+	sub, err := c.SubString("login.cookie")
+	if err != nil {
+		return "", fmt.Errorf("failed to subscribe for login/cookie: %v", err)
+	}
+	defer sub.Unsub()
+	if err := c.sendRegisterDevice(userCookie); err != nil {
+		return "", fmt.Errorf("failed to send registerDevice: %v", err)
+	}
+	select {
+	case deviceCookie = <-sub.C():
+	case <-time.Tick(60 * time.Second):
+		// TODO(krasin): use contexts. Or use grpc and delete this code.
+		return "", errors.New("RegisterDevice: timed out")
+	}
+	return deviceCookie, nil
+}
+
 func (c *Client) sendHello(cookie string) error {
 	return send(c.conn, &Request{
 		Cmd:    "hello",
@@ -59,6 +84,7 @@ func (c *Client) Hello(cookie string) (machineName string, err error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to subscribe for login/deviceName: %v", err)
 	}
+	defer sub.Unsub()
 	if err := c.sendHello(cookie); err != nil {
 		return "", fmt.Errorf("failed to send hello: %v", err)
 	}
@@ -69,7 +95,6 @@ func (c *Client) Hello(cookie string) (machineName string, err error) {
 		// TODO(krasin): use contexts. Or use grpc and delete this code.
 		return "", errors.New("Hello: timed out")
 	}
-	sub.Unsub()
 	return deviceName, nil
 }
 

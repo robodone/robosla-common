@@ -19,6 +19,7 @@ type Response struct {
 }
 
 type Login struct {
+	Cookie     string `json:"cookie"`
 	DeviceName string `json:"deviceName,omitempty"`
 }
 

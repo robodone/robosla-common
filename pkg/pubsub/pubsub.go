@@ -91,7 +91,7 @@ func (nd *Node) Pub(jsonStr string) error {
 	if nd.stopped {
 		return errors.New("node is already stopped")
 	}
-	log.Printf("Pub(%s), prior state: %s", jsonStr, mustJson(nd.state))
+	// log.Printf("Pub(%s), prior state: %s", jsonStr, mustJson(nd.state))
 	var m map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonStr), &m); err != nil {
 		return err
@@ -113,7 +113,7 @@ func (nd *Node) Pub(jsonStr string) error {
 		sub.update(m)
 	}
 
-	log.Printf("Pub(%s), after state: %s", jsonStr, mustJson(nd.state))
+	// log.Printf("Pub(%s), after state: %s", jsonStr, mustJson(nd.state))
 	return nil
 }
 
@@ -157,7 +157,7 @@ func (nd *Node) Sub(paths ...string) (*Sub, error) {
 		nd.subPaths[p] = append(nd.subPaths[p], res)
 	}
 	nd.subs = append(nd.subs, res)
-	log.Printf("Sub(%q), state: %s", paths, mustJson(nd.state))
+	// log.Printf("Sub(%q), state: %s", paths, mustJson(nd.state))
 	res.update(nd.state)
 	return res, nil
 }
@@ -259,7 +259,7 @@ func mergeObjects(dest, src map[string]interface{}) {
 }
 
 func setIfCan(m map[string]interface{}, pp []string, val interface{}) {
-	log.Printf("setIfCan(m: %+v, pp: %q, val: %+v", m, pp, val)
+	// log.Printf("setIfCan(m: %+v, pp: %q, val: %+v", m, pp, val)
 	if len(pp) == 1 {
 		// This is a top-level path. Set the value directly, unless both sides are object.
 		// In the latter case, we need to merge paths
@@ -361,7 +361,7 @@ func newStringSub(nd *Node, sub *Sub, path string) *StringSub {
 func (ss *StringSub) run() {
 	defer close(ss.ch)
 	for msg := range ss.sub.C() {
-		log.Printf("StringSub got msg: %s\n", msg)
+		// log.Printf("StringSub got msg: %s\n", msg)
 		var m map[string]interface{}
 		if err := json.Unmarshal([]byte(msg), &m); err != nil {
 			log.Printf("Error: invalid json from Sub. That should never happen, but since it did, we just ignore.")
