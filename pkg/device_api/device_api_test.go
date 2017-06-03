@@ -3,10 +3,9 @@ package device_api
 import (
 	"errors"
 	"testing"
-	"time"
 )
 
-const backlogSize = 1
+const testBacklogSize = 1
 
 var (
 	TestGoodCookie = "this cookie is good"
@@ -38,8 +37,8 @@ func (tc *TestConn) Close() error {
 }
 
 func newTestConnPair() (Conn, Conn) {
-	to := make(chan string, backlogSize)
-	from := make(chan string, backlogSize)
+	to := make(chan string, testBacklogSize)
+	from := make(chan string, testBacklogSize)
 	return &TestConn{
 			in:  to,
 			out: from,
@@ -84,21 +83,11 @@ func TestHelloOK(t *testing.T) {
 	client := NewClient(conn1)
 	defer client.Stop()
 
-	sub, err := client.SubString("login.deviceName")
+	deviceName, err := client.Hello(TestGoodCookie)
 	if err != nil {
-		t.Fatalf("Failed to subscribe for login/deviceName: %v", err)
+		t.Errorf("Hello(%q) failed: %v", TestGoodCookie, err)
 	}
-	defer sub.Unsub()
-
-	if err := client.Hello(TestGoodCookie); err != nil {
-		t.Fatalf("Failed to send hello: %v", err)
-	}
-	select {
-	case deviceName := <-sub.C():
-		if deviceName != TestDeviceName {
-			t.Errorf("Wrong device name. Want: %s, got: %s", TestDeviceName, deviceName)
-		}
-	case <-time.Tick(time.Second):
-		t.Errorf("Expected update not received")
+	if deviceName != TestDeviceName {
+		t.Errorf("Wrong device name. Want: %s, got: %s", TestDeviceName, deviceName)
 	}
 }
