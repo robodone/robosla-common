@@ -9,7 +9,7 @@ import (
 
 var (
 	updatesMu      sync.Mutex
-	updatesEnabled bool
+	updatesEnabled = true
 )
 
 func DisableUpdates() {
