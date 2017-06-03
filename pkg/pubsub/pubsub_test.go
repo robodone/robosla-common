@@ -1,6 +1,9 @@
 package pubsub
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestSimple(t *testing.T) {
 	node := NewNode()
@@ -90,4 +93,28 @@ func TestInitialUpdate(t *testing.T) {
 		t.Errorf("Expected update not received")
 	}
 	node.Unsub(sub)
+}
+
+func TestString(t *testing.T) {
+	node := NewNode()
+	defer node.Stop()
+
+	sub, err := node.SubString("hello.world")
+	if err != nil {
+		t.Fatalf("SubString: %v", err)
+	}
+	if err := node.Pub(`{"hello":{"world":"lala"}}`); err != nil {
+		t.Fatalf("Pub: %v", err)
+	}
+	select {
+	case msg := <-sub.C():
+		want := "lala"
+		if msg != want {
+			t.Errorf("Unexpected update message: %q, want: %q", msg, want)
+		}
+		// We don't expect immediate response, but we do expect a quick response.
+	case <-time.Tick(time.Second):
+		t.Errorf("Expected update not received")
+	}
+	sub.Unsub()
 }

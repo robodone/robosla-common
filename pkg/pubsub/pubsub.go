@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -159,6 +160,14 @@ func (nd *Node) Sub(paths ...string) (*Sub, error) {
 	log.Printf("Sub(%q), state: %s", paths, mustJson(nd.state))
 	res.update(nd.state)
 	return res, nil
+}
+
+func (nd *Node) SubString(path string) (*StringSub, error) {
+	sub, err := nd.Sub(path)
+	if err != nil {
+		return nil, err
+	}
+	return newStringSub(nd, sub, path), nil
 }
 
 func removeSub(subs []*Sub, sub *Sub, shouldClose bool) []*Sub {
@@ -325,4 +334,57 @@ func (s *Sub) update(m map[string]interface{}) {
 	default:
 		// The destination has lost this update, but we don't want to lock on them anyway.
 	}
+}
+
+type StringSub struct {
+	nd   *Node
+	sub  *Sub
+	path string
+	ch   chan string
+}
+
+func (ss *StringSub) C() <-chan string {
+	return ss.ch
+}
+
+func newStringSub(nd *Node, sub *Sub, path string) *StringSub {
+	ss := &StringSub{
+		nd:   nd,
+		sub:  sub,
+		path: path,
+		ch:   make(chan string, backlogSize),
+	}
+	go ss.run()
+	return ss
+}
+
+func (ss *StringSub) run() {
+	defer close(ss.ch)
+	for msg := range ss.sub.C() {
+		log.Printf("StringSub got msg: %s\n", msg)
+		var m map[string]interface{}
+		if err := json.Unmarshal([]byte(msg), &m); err != nil {
+			log.Printf("Error: invalid json from Sub. That should never happen, but since it did, we just ignore.")
+		}
+		pp := strings.Split(ss.path, ".")
+		val, ok := getIfCan(m, pp)
+		if !ok {
+			// this path is not present in src. Skip.
+			log.Printf("Error: received unnecessary update; wanted path %q was not found in the message")
+			continue
+		}
+		var str string
+		if val != nil {
+			str, ok = val.(string)
+			if !ok {
+				log.Printf("Error: received an update where %q is not a string, but %v", reflect.TypeOf(val))
+				str = ""
+			}
+		}
+		ss.ch <- str
+	}
+}
+
+func (ss *StringSub) Unsub() {
+	ss.nd.Unsub(ss.sub)
 }
