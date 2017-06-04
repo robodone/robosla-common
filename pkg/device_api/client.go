@@ -104,6 +104,14 @@ func (c *Client) Hello(cookie string) (machineName string, err error) {
 	return deviceName, nil
 }
 
+func (c *Client) SendTerminalOutput(out string) error {
+	return send(c.conn, &Request{
+		Cmd:            "send-terminal-output",
+		TerminalOutput: out,
+	})
+
+}
+
 func (c *Client) SubString(path string) (*pubsub.StringSub, error) {
 	return c.nd.SubString(path)
 }

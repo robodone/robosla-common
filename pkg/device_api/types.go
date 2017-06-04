@@ -8,8 +8,9 @@ const (
 )
 
 type Request struct {
-	Cmd    string `json:"cmd"`
-	Cookie string `json:"cookie,omitempty"`
+	Cmd            string `json:"cmd"`
+	Cookie         string `json:"cookie,omitempty"`
+	TerminalOutput string `json:"terminalOutput,omitempty"`
 }
 
 type Response struct {

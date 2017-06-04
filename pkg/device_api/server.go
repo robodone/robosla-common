@@ -9,6 +9,7 @@ import (
 type Impl interface {
 	RegisterDevice(cookie string, resp *Response) error
 	Hello(cookie string, resp *Response) error
+	SendTerminalOutput(out string, resp *Response) error
 }
 
 type Server struct {

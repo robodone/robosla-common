@@ -65,6 +65,10 @@ func (ts *TestServerImpl) RegisterDevice(cookie string, resp *Response) error {
 	return errors.New("TestServerImpl.RegisterDevice: not implemented")
 }
 
+func (ts *TestServerImpl) SendTerminalOutput(out string, resp *Response) error {
+	return errors.New("TestServerImpl.SendTerminalOutput: not implemented")
+}
+
 // TestHello opens a connection from the client to the server,
 // the client sends a hello request with a cookie, which the server handles
 // and issues a response. In one case, it's placing device name into the state
