@@ -1,6 +1,8 @@
 package pubsub
 
-import "sync"
+import (
+	"sync"
+)
 
 type Manager struct {
 	mu        sync.Mutex
@@ -29,6 +31,7 @@ func (m *Manager) getNode(nodeName string) *Node {
 }
 
 func (m *Manager) Sub(nodeName string, paths ...string) (*Sub, error) {
+	// log.Printf("Manager.Sub(%q, %q)", nodeName, paths)
 	sub, err := m.getNode(nodeName).Sub(paths...)
 	if err != nil {
 		return nil, err

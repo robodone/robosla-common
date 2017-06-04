@@ -97,13 +97,16 @@ func (nd *Node) Pub(jsonStr string) error {
 		return err
 	}
 	paths := scanPaths(m)
+	log.Printf("Pub, paths: %v", paths)
 	subsM := make(map[*Sub]bool)
 	for _, p := range paths {
+		log.Printf("Pub, p=%q, len(nd.subPaths[p]): %d", p, len(nd.subPaths[p]))
 		for _, sub := range nd.subPaths[p] {
 			subsM[sub] = true
 		}
 		assignIfCan(nd.state, m, p)
 	}
+	// log.Printf("Pub, found %d subs", len(subsM))
 	var subs []*Sub
 	for sub, _ := range subsM {
 		subs = append(subs, sub)
@@ -143,6 +146,7 @@ func mustJson(m map[string]interface{}) string {
 }
 
 func (nd *Node) Sub(paths ...string) (*Sub, error) {
+	// log.Printf("Sub(%q), 0", paths)
 	nd.mu.Lock()
 	defer nd.mu.Unlock()
 	if nd.stopped {
@@ -275,7 +279,8 @@ func setIfCan(m map[string]interface{}, pp []string, val interface{}) {
 		case string:
 			m[pp[0]] = val
 		case []interface{}:
-			log.Printf("Array values are not supported. Skip.")
+			log.Printf("Warning: array values are not properly supported yet. Always rewrite. Value: %+v", val)
+			m[pp[0]] = val
 		case map[string]interface{}:
 			dest := m[pp[0]]
 			switch dest.(type) {

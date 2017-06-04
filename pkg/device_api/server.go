@@ -69,6 +69,8 @@ func (srv *Server) dispatch(msg string) {
 		err = srv.impl.RegisterDevice(req.Cookie, &resp)
 	case "hello":
 		err = srv.impl.Hello(req.Cookie, &resp)
+	case "send-terminal-output":
+		err = srv.impl.SendTerminalOutput(req.TerminalOutput, &resp)
 	default:
 		srv.replyUserError(fmt.Sprintf("unsupported command %q", req.Cmd))
 		return
