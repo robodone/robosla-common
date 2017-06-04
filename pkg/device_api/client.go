@@ -30,7 +30,13 @@ func (c *Client) run() {
 		select {
 		case <-c.stopped:
 			return
-		case msg := <-c.conn.In():
+		case msg, ok := <-c.conn.In():
+			if !ok {
+				// connection to the server was terminated.
+				// release all subscribers.
+				c.nd.Stop()
+				return
+			}
 			log.Printf("Server reply received: %s", msg)
 			err := c.nd.Pub(msg)
 			if err != nil {
