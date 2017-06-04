@@ -6,6 +6,11 @@ import (
 	"log"
 )
 
+type Impl interface {
+	RegisterDevice(cookie string, resp *Response) error
+	Hello(cookie string, resp *Response) error
+}
+
 type Server struct {
 	conn    Conn
 	impl    Impl
@@ -14,16 +19,18 @@ type Server struct {
 
 func NewServer(conn Conn, impl Impl) *Server {
 	srv := &Server{conn: conn, impl: impl, stopped: make(chan bool, 1)}
-	go srv.run()
 	return srv
 }
 
-func (srv *Server) run() {
+func (srv *Server) Run() error {
 	for {
 		select {
 		case <-srv.stopped:
-			return
-		case msg := <-srv.conn.In():
+			return nil
+		case msg, ok := <-srv.conn.In():
+			if !ok {
+				return nil
+			}
 			log.Printf("Server.Run, a message was received: %v", msg)
 			srv.dispatch(msg)
 		}
@@ -57,6 +64,8 @@ func (srv *Server) dispatch(msg string) {
 	case "":
 		srv.replyUserError("command not set")
 		return
+	case "register-device":
+		err = srv.impl.RegisterDevice(req.Cookie, &resp)
 	case "hello":
 		err = srv.impl.Hello(req.Cookie, &resp)
 	default:

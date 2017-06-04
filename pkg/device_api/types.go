@@ -22,7 +22,3 @@ type Login struct {
 	Cookie     string `json:"cookie"`
 	DeviceName string `json:"deviceName,omitempty"`
 }
-
-type Impl interface {
-	Hello(cookie string, resp *Response) error
-}

@@ -20,10 +20,10 @@ func ConnectWS(apiServer string) (Conn, error) {
 		return nil, fmt.Errorf("failed to dial %q: %v", url, err)
 	}
 	sock := syncws.NewSocket(conn)
-	return newWSConn(sock), nil
+	return NewWSConn(sock), nil
 }
 
-func newWSConn(sock *syncws.Socket) *WSConn {
+func NewWSConn(sock *syncws.Socket) *WSConn {
 	wsc := &WSConn{
 		sock: sock,
 		inCh: make(chan string, backlogSize),
@@ -37,6 +37,7 @@ func (wsc *WSConn) run() {
 		p, err := wsc.sock.ReadMessage()
 		if err != nil {
 			log.Printf("ReadMessage failed: %v. Stop listening for incoming messages.", err)
+			close(wsc.inCh)
 			return
 		}
 		log.Printf("A message received: %s", string(p))

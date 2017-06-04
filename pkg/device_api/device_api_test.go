@@ -61,6 +61,10 @@ func (ts *TestServerImpl) Hello(cookie string, resp *Response) error {
 	return errors.New("bad cookie")
 }
 
+func (ts *TestServerImpl) RegisterDevice(cookie string, resp *Response) error {
+	return errors.New("TestServerImpl.RegisterDevice: not implemented")
+}
+
 // TestHello opens a connection from the client to the server,
 // the client sends a hello request with a cookie, which the server handles
 // and issues a response. In one case, it's placing device name into the state
@@ -74,6 +78,7 @@ func TestHelloOK(t *testing.T) {
 	// Creating test server
 	testSrvImpl := new(TestServerImpl)
 	srv := NewServer(conn0, testSrvImpl)
+	go srv.Run()
 	defer func() {
 		if err := srv.Stop(); err != nil {
 			t.Errorf("Failed to stop the server: %v", err)
