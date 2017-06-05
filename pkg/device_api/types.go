@@ -30,6 +30,6 @@ type TimeSeries struct {
 }
 
 type StringSample struct {
-	TS    int64  `json:ts"`
+	TS    int64  `json:"ts"`
 	Value string `json:"value"`
 }
