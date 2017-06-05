@@ -115,3 +115,7 @@ func (c *Client) SendTerminalOutput(out string) error {
 func (c *Client) SubString(path string) (*pubsub.StringSub, error) {
 	return c.nd.SubString(path)
 }
+
+func (c *Client) Sub(path string) (*pubsub.Sub, error) {
+	return c.nd.Sub(path)
+}

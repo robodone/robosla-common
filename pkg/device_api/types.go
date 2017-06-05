@@ -26,7 +26,7 @@ type Login struct {
 }
 
 type TimeSeries struct {
-	Gcode []*StringSample
+	Gcode []*StringSample `json:"gcode,omitempty"`
 }
 
 type StringSample struct {
