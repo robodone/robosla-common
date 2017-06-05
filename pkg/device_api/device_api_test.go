@@ -69,6 +69,11 @@ func (ts *TestServerImpl) SendTerminalOutput(out string, resp *Response) error {
 	return errors.New("TestServerImpl.SendTerminalOutput: not implemented")
 }
 
+func (ts *TestServerImpl) RunPusher(closed <-chan bool, respCh chan<- *Response) {
+	// We don't have any tests for push responses yet.
+	close(respCh)
+}
+
 // TestHello opens a connection from the client to the server,
 // the client sends a hello request with a cookie, which the server handles
 // and issues a response. In one case, it's placing device name into the state

@@ -14,12 +14,22 @@ type Request struct {
 }
 
 type Response struct {
-	Status string `json:"status"`
-	Error  string `json:"error,omitempty"`
-	Login  *Login `json:"login,omitempty"`
+	Status string      `json:"status"`
+	Error  string      `json:"error,omitempty"`
+	Login  *Login      `json:"login,omitempty"`
+	TS     *TimeSeries `json:"ts,omitempty"`
 }
 
 type Login struct {
 	Cookie     string `json:"cookie"`
 	DeviceName string `json:"deviceName,omitempty"`
+}
+
+type TimeSeries struct {
+	Gcode []*StringSample
+}
+
+type StringSample struct {
+	TS    int64  `json:ts"`
+	Value string `json:"value"`
 }

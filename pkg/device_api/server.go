@@ -19,8 +19,12 @@ type Server struct {
 }
 
 func NewServer(conn Conn, impl Impl) *Server {
-	srv := &Server{conn: conn, impl: impl, stopped: make(chan bool, 1)}
+	srv := &Server{conn: conn, impl: impl, stopped: make(chan bool)}
 	return srv
+}
+
+func (srv *Server) SendBack(resp *Response) error {
+	return send(srv.conn, resp)
 }
 
 func (srv *Server) Run() error {
@@ -89,6 +93,6 @@ func (srv *Server) dispatch(msg string) {
 func (srv *Server) Stop() error {
 	// At this time, we don't want to take the ownership over connections.
 	// May be, reconsider in the future.
-	srv.stopped <- true
+	close(srv.stopped)
 	return nil
 }
