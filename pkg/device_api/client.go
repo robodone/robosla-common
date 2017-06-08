@@ -4,22 +4,32 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/robodone/robosla-common/pkg/pubsub"
 )
 
 type Client struct {
-	conn    Conn
-	nd      *pubsub.Node
-	stopped chan bool
+	conn      Conn
+	nd        *pubsub.Node
+	mu        sync.Mutex
+	isStopped bool
+	stopped   chan bool
 }
 
-func NewClient(conn Conn) *Client {
+// This channel will be closed, when the client is stopped.
+// So, it's useful to wait like:
+// <- c.Stopped()
+func (c *Client) Stopped() <-chan bool {
+	return c.stopped
+}
+
+func NewClient(conn Conn, nd *pubsub.Node) *Client {
 	c := &Client{
 		conn:    conn,
-		nd:      pubsub.NewNode(),
-		stopped: make(chan bool, 1),
+		nd:      nd,
+		stopped: make(chan bool),
 	}
 	go c.run()
 	return c
@@ -32,9 +42,7 @@ func (c *Client) run() {
 			return
 		case msg, ok := <-c.conn.In():
 			if !ok {
-				// connection to the server was terminated.
-				// release all subscribers.
-				c.nd.Stop()
+				c.Stop()
 				return
 			}
 			log.Printf("Server reply received: %s", msg)
@@ -48,8 +56,14 @@ func (c *Client) run() {
 
 func (c *Client) Stop() error {
 	// Client does not own the connection.
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.isStopped {
+		// It's already stopped, but it's OK.
+		return nil
+	}
+	c.isStopped = true
 	close(c.stopped)
-	c.nd.Stop()
 	return nil
 }
 
