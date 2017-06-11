@@ -8,26 +8,28 @@ import (
 )
 
 var (
-	updatesMu      sync.Mutex
-	updatesEnabled = true
+	updatesMu            sync.Mutex
+	updatesDisabledDepth = 0
 )
 
 func DisableUpdates() {
 	updatesMu.Lock()
 	defer updatesMu.Unlock()
-	updatesEnabled = false
+	updatesDisabledDepth++
 }
 
 func EnableUpdates() {
 	updatesMu.Lock()
 	defer updatesMu.Unlock()
-	updatesEnabled = true
+	if updatesDisabledDepth > 0 {
+		updatesDisabledDepth--
+	}
 }
 
 func areUpdatesEnabled() bool {
 	updatesMu.Lock()
 	defer updatesMu.Unlock()
-	return updatesEnabled
+	return updatesDisabledDepth == 0
 }
 
 func Run(manifestURL, version string, initialDelay, delay time.Duration) {
