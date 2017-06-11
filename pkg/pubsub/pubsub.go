@@ -375,14 +375,14 @@ func (ss *StringSub) run() {
 		val, ok := getIfCan(m, pp)
 		if !ok {
 			// this path is not present in src. Skip.
-			log.Printf("Error: received unnecessary update; wanted path %q was not found in the message")
+			log.Printf("Error: received unnecessary update; wanted path %q was not found in the message", ss.path)
 			continue
 		}
 		var str string
 		if val != nil {
 			str, ok = val.(string)
 			if !ok {
-				log.Printf("Error: received an update where %q is not a string, but %v", reflect.TypeOf(val))
+				log.Printf("Error: received an update where %q is not a string, but %v", val, reflect.TypeOf(val))
 				str = ""
 			}
 		}

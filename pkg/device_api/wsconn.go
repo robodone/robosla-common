@@ -44,7 +44,7 @@ func (wsc *WSConn) run() {
 		select {
 		case wsc.inCh <- string(p):
 		default:
-			log.Printf("Incoming message dropped due to reaching the limit for backlog (%s messages)", backlogSize)
+			log.Printf("Incoming message dropped due to reaching the limit for backlog (%d messages)", backlogSize)
 		}
 	}
 }
