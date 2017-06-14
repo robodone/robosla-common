@@ -38,10 +38,10 @@ func (srv *Server) Run() error {
 			if !ok {
 				return nil
 			}
-			log.Printf("Server.Run, a message was received: %v", msg)
 			if msg.Type != websocket.TextMessage {
 				log.Printf("Unexpected message type %d, ignoring...", msg.Type)
 			}
+			log.Printf("Server.Run, a message was received: %s", string(msg.Data))
 			srv.dispatch(string(msg.Data))
 		}
 	}
