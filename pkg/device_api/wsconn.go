@@ -10,7 +10,7 @@ import (
 
 type WSConn struct {
 	sock *syncws.Socket
-	inCh chan string
+	inCh chan *Message
 }
 
 func ConnectWS(apiServer string) (Conn, error) {
@@ -26,7 +26,7 @@ func ConnectWS(apiServer string) (Conn, error) {
 func NewWSConn(sock *syncws.Socket) *WSConn {
 	wsc := &WSConn{
 		sock: sock,
-		inCh: make(chan string, backlogSize),
+		inCh: make(chan *Message, backlogSize),
 	}
 	go wsc.run()
 	return wsc
@@ -34,15 +34,19 @@ func NewWSConn(sock *syncws.Socket) *WSConn {
 
 func (wsc *WSConn) run() {
 	for {
-		p, err := wsc.sock.ReadMessage()
+		messageType, p, err := wsc.sock.ReadMessage()
 		if err != nil {
 			log.Printf("ReadMessage failed: %v. Stop listening for incoming messages.", err)
 			close(wsc.inCh)
 			return
 		}
-		log.Printf("A message received: %s", string(p))
+		toprint := string(p)
+		if len(toprint) > 300 {
+			toprint = toprint[:300]
+		}
+		log.Printf("A message received: %s", toprint)
 		select {
-		case wsc.inCh <- string(p):
+		case wsc.inCh <- &Message{Type: messageType, Data: p}:
 		default:
 			log.Printf("Incoming message dropped due to reaching the limit for backlog (%d messages)", backlogSize)
 		}
@@ -53,7 +57,7 @@ func (wsc *WSConn) Close() error {
 	return wsc.sock.Close()
 }
 
-func (wsc *WSConn) In() <-chan string {
+func (wsc *WSConn) In() <-chan *Message {
 	return wsc.inCh
 }
 

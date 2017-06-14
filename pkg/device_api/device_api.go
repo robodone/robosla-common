@@ -6,10 +6,15 @@ import (
 	"io"
 )
 
+type Message struct {
+	Type int
+	Data []byte
+}
+
 type Conn interface {
 	io.Closer
 
-	In() <-chan string
+	In() <-chan *Message
 	Send(data string) error
 }
 

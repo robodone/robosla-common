@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/robodone/robosla-common/pkg/pubsub"
 )
 
@@ -45,8 +46,12 @@ func (c *Client) run() {
 				c.Stop()
 				return
 			}
+			if msg.Type != websocket.TextMessage {
+				log.Printf("Unexpected message type %d from server. Skipping the message", msg.Type)
+				continue
+			}
 			log.Printf("Server reply received: %s", msg)
-			err := c.nd.Pub(msg)
+			err := c.nd.Pub(string(msg.Data))
 			if err != nil {
 				log.Printf("Error: failed to publish server updates: %v", err)
 			}

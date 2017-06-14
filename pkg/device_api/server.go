@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+
+	"github.com/gorilla/websocket"
 )
 
 type Impl interface {
@@ -37,7 +39,10 @@ func (srv *Server) Run() error {
 				return nil
 			}
 			log.Printf("Server.Run, a message was received: %v", msg)
-			srv.dispatch(msg)
+			if msg.Type != websocket.TextMessage {
+				log.Printf("Unexpected message type %d, ignoring...", msg.Type)
+			}
+			srv.dispatch(string(msg.Data))
 		}
 	}
 }

@@ -28,19 +28,19 @@ func (s *Socket) WriteMessage(data []byte) error {
 	return err
 }
 
-func (s *Socket) ReadMessage() ([]byte, error) {
+func (s *Socket) ReadMessage() (messageType int, p []byte, err error) {
 	s.rmu.Lock()
 	defer s.rmu.Unlock()
 	for {
-		messageType, p, err := s.conn.ReadMessage()
+		messageType, p, err = s.conn.ReadMessage()
 		if err != nil {
-			return nil, err
+			return 0, nil, err
 		}
-		if messageType != websocket.TextMessage {
+		if messageType != websocket.TextMessage && messageType != websocket.BinaryMessage {
 			log.Printf("messageType: %d, ignoring...\n", messageType)
 			continue
 		}
-		return p, nil
+		return messageType, p, nil
 	}
 }
 
