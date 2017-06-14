@@ -15,10 +15,12 @@ import (
 // which are discarded, not the old ones. This is why the size is that large.
 const backlogSize = 10
 
+var ErrNodeAlreadyStopped = errors.New("node is already stopped")
+
 type Node struct {
 	mu       sync.Mutex
 	stopped  bool
-	cnt      int
+	cnt      int64
 	subPaths map[string][]*Sub
 	subs     []*Sub
 	state    map[string]interface{}
@@ -89,7 +91,7 @@ func (nd *Node) Pub(jsonStr string) error {
 	nd.mu.Lock()
 	defer nd.mu.Unlock()
 	if nd.stopped {
-		return errors.New("node is already stopped")
+		return ErrNodeAlreadyStopped
 	}
 	// log.Printf("Pub(%s), prior state: %s", jsonStr, mustJson(nd.state))
 	var m map[string]interface{}
@@ -146,24 +148,39 @@ func mustJson(m map[string]interface{}) string {
 }
 
 func (nd *Node) Sub(paths ...string) (*Sub, error) {
-	// log.Printf("Sub(%q), 0", paths)
 	nd.mu.Lock()
 	defer nd.mu.Unlock()
 	if nd.stopped {
-		return nil, errors.New("node is already stopped")
+		return nil, ErrNodeAlreadyStopped
 	}
 	// TODO(krasin): validate paths. They must be conforming json rules.
 	paths = cleanPaths(paths)
 	ch := make(chan string, backlogSize)
 	nd.cnt++
 	res := &Sub{paths: paths, ch: ch, id: nd.cnt}
-	for _, p := range paths {
-		nd.subPaths[p] = append(nd.subPaths[p], res)
+	err := nd.subInternal(res, paths...)
+	if err != nil {
+		return nil, err
 	}
-	nd.subs = append(nd.subs, res)
-	// log.Printf("Sub(%q), state: %s", paths, mustJson(nd.state))
-	res.update(nd.state)
 	return res, nil
+}
+
+func (nd *Node) subInternal(sub *Sub, paths ...string) error {
+	for _, p := range paths {
+		nd.subPaths[p] = append(nd.subPaths[p], sub)
+	}
+	nd.subs = append(nd.subs, sub)
+	sub.update(nd.state)
+	return nil
+}
+
+func (nd *Node) subSub(sub *Sub, paths ...string) error {
+	nd.mu.Lock()
+	defer nd.mu.Unlock()
+	if nd.stopped {
+		return ErrNodeAlreadyStopped
+	}
+	return nd.subInternal(sub, paths...)
 }
 
 func (nd *Node) SubString(path string) (*StringSub, error) {
@@ -208,7 +225,7 @@ func (nd *Node) Unsub(sub *Sub) {
 }
 
 type Sub struct {
-	id    int
+	id    int64
 	paths []string
 	ch    chan string
 }
