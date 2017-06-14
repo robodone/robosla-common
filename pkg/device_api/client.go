@@ -50,7 +50,7 @@ func (c *Client) run() {
 				log.Printf("Unexpected message type %d from server. Skipping the message", msg.Type)
 				continue
 			}
-			log.Printf("Server reply received: %s", msg)
+			log.Printf("Server reply received: %s", string(msg.Data))
 			err := c.nd.Pub(string(msg.Data))
 			if err != nil {
 				log.Printf("Error: failed to publish server updates: %v", err)
