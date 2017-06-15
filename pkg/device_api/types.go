@@ -1,10 +1,9 @@
 package device_api
 
 const (
-	StatusOK      = "OK"
-	StatusError   = "Error"
-	backlogSize   = 10
-	TestAPIServer = "test1.robosla.com"
+	StatusOK    = "OK"
+	StatusError = "Error"
+	backlogSize = 10
 )
 
 type Request struct {
