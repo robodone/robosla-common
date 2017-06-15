@@ -6,3 +6,7 @@ type Printer struct {
 	DisplayName string `json:"displayName,omitempty"`
 	Status      string `json:"status,omitempty"`
 }
+
+type PrinterForProgress struct {
+	Progress float64 `json:"progress"`
+}
