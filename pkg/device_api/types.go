@@ -34,9 +34,10 @@ type StringSample struct {
 }
 
 type UplinkMessage struct {
-	Type     string  `json:"type"`
-	JobName  string  `json:"jobName"`
-	Success  bool    `json:"success"`
-	Comment  string  `json:"comment"`
-	Progress float64 `json:"progress"`
+	Type       string  `json:"type"`
+	JobName    string  `json:"jobName"`
+	Success    bool    `json:"success"`
+	Comment    string  `json:"comment"`
+	Progress   float64 `json:"progress"`
+	FrameIndex int     `json:"frameIndex"`
 }
