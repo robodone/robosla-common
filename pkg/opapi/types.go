@@ -7,10 +7,14 @@ type Printer struct {
 	Status      string `json:"status,omitempty"`
 }
 
+type PrinterForFrameIndex struct {
+	FrameIndex int `json:"frameIndex"`
+}
+
 type PrinterForProgress struct {
 	Progress float64 `json:"progress"`
 }
 
-type PrinterForFrameIndex struct {
-	FrameIndex int `json:"frameIndex"`
+type PrinterForVideo struct {
+	VideoURL string `json:"videoURL"`
 }
