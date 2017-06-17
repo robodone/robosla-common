@@ -72,7 +72,7 @@ func scanPathsInternal(prefix string, m map[string]interface{}, paths *[]string)
 		case bool:
 			continue
 		case []interface{}:
-			log.Printf("Error: scanPathInternal: arrays not supported. Ignore.")
+			//log.Printf("Error: scanPathInternal: arrays not supported. Ignore.")
 			continue
 		case map[string]interface{}:
 			scanPathsInternal(curPath+".", v.(map[string]interface{}), paths)
@@ -99,10 +99,10 @@ func (nd *Node) Pub(jsonStr string) error {
 		return err
 	}
 	paths := scanPaths(m)
-	log.Printf("Pub, paths: %v", paths)
+	// log.Printf("Pub, paths: %v", paths)
 	subsM := make(map[*Sub]bool)
 	for _, p := range paths {
-		log.Printf("Pub, p=%q, len(nd.subPaths[p]): %d", p, len(nd.subPaths[p]))
+		// log.Printf("Pub, p=%q, len(nd.subPaths[p]): %d", p, len(nd.subPaths[p]))
 		for _, sub := range nd.subPaths[p] {
 			subsM[sub] = true
 		}
@@ -296,7 +296,7 @@ func setIfCan(m map[string]interface{}, pp []string, val interface{}) {
 		case string:
 			m[pp[0]] = val
 		case []interface{}:
-			log.Printf("Warning: array values are not properly supported yet. Always rewrite. Value: %+v", val)
+			//log.Printf("Warning: array values are not properly supported yet. Always rewrite. Value: %+v", val)
 			m[pp[0]] = val
 		case map[string]interface{}:
 			dest := m[pp[0]]
@@ -354,6 +354,7 @@ func (s *Sub) update(m map[string]interface{}) {
 	select {
 	case s.ch <- msg:
 	default:
+		log.Printf("Failed to publish update: %s", msg)
 		// The destination has lost this update, but we don't want to lock on them anyway.
 	}
 }
