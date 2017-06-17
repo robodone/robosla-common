@@ -13,7 +13,8 @@ import (
 
 // Right now, backlog is implemented poorly, as if it's full, it's the new messages
 // which are discarded, not the old ones. This is why the size is that large.
-const backlogSize = 10
+// Update: in fact, it's not that large. Messages may come in bursts. 10 was not enough.
+const backlogSize = 30
 
 var ErrNodeAlreadyStopped = errors.New("node is already stopped")
 
@@ -354,7 +355,7 @@ func (s *Sub) update(m map[string]interface{}) {
 	select {
 	case s.ch <- msg:
 	default:
-		log.Printf("Failed to publish update: %s", msg)
+		log.Printf("Failed to publish update for sub(%q): %s", s.paths, msg)
 		// The destination has lost this update, but we don't want to lock on them anyway.
 	}
 }
