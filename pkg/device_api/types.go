@@ -3,7 +3,7 @@ package device_api
 const (
 	StatusOK    = "OK"
 	StatusError = "Error"
-	backlogSize = 10
+	backlogSize = 30
 )
 
 type Request struct {
