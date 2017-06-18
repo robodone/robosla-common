@@ -13,8 +13,8 @@ import (
 
 // Right now, backlog is implemented poorly, as if it's full, it's the new messages
 // which are discarded, not the old ones. This is why the size is that large.
-// Update: in fact, it's not that large. Messages may come in bursts. 10 was not enough.
-const backlogSize = 30
+// Update: in fact, it's not that large. Messages may come in bursts. 30 was not enough.
+const backlogSize = 50
 
 var ErrNodeAlreadyStopped = errors.New("node is already stopped")
 
