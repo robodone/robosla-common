@@ -10,7 +10,7 @@ import (
 
 type Impl interface {
 	RegisterDevice(cookie string, resp *Response) error
-	Hello(cookie string, resp *Response) error
+	Hello(cookie, jobName string, resp *Response) error
 	SendTerminalOutput(out string, resp *Response) error
 }
 
@@ -77,7 +77,7 @@ func (srv *Server) dispatch(msg string) {
 	case "register-device":
 		err = srv.impl.RegisterDevice(req.Cookie, &resp)
 	case "hello":
-		err = srv.impl.Hello(req.Cookie, &resp)
+		err = srv.impl.Hello(req.Cookie, req.JobName, &resp)
 	case "send-terminal-output":
 		err = srv.impl.SendTerminalOutput(req.TerminalOutput, &resp)
 	default:

@@ -3,6 +3,9 @@ package device_api
 import (
 	"errors"
 	"testing"
+
+	"github.com/gorilla/websocket"
+	"github.com/robodone/robosla-common/pkg/pubsub"
 )
 
 const testBacklogSize = 1
@@ -13,17 +16,17 @@ var (
 )
 
 type TestConn struct {
-	in  <-chan string
-	out chan<- string
+	in  <-chan *Message
+	out chan<- *Message
 }
 
-func (tc *TestConn) In() <-chan string {
+func (tc *TestConn) In() <-chan *Message {
 	return tc.in
 }
 
 func (tc *TestConn) Send(data string) error {
 	select {
-	case tc.out <- data:
+	case tc.out <- &Message{Type: websocket.TextMessage, Data: []byte(data)}:
 	default:
 		return errors.New("failed to send a message due to a backlog")
 	}
@@ -37,8 +40,8 @@ func (tc *TestConn) Close() error {
 }
 
 func newTestConnPair() (Conn, Conn) {
-	to := make(chan string, testBacklogSize)
-	from := make(chan string, testBacklogSize)
+	to := make(chan *Message, testBacklogSize)
+	from := make(chan *Message, testBacklogSize)
 	return &TestConn{
 			in:  to,
 			out: from,
@@ -51,7 +54,7 @@ func newTestConnPair() (Conn, Conn) {
 type TestServerImpl struct {
 }
 
-func (ts *TestServerImpl) Hello(cookie string, resp *Response) error {
+func (ts *TestServerImpl) Hello(cookie, jobName string, resp *Response) error {
 	if cookie == TestGoodCookie {
 		resp.Login = &Login{
 			DeviceName: TestDeviceName,
@@ -94,7 +97,7 @@ func TestHelloOK(t *testing.T) {
 		}
 	}()
 
-	client := NewClient(conn1)
+	client := NewClient(conn1, pubsub.NewNode())
 	defer client.Stop()
 
 	deviceName, err := client.Hello(TestGoodCookie)

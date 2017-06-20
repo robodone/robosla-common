@@ -9,6 +9,7 @@ const (
 type Request struct {
 	Cmd            string `json:"cmd"`
 	Cookie         string `json:"cookie,omitempty"`
+	JobName        string `json:"jobName,omitempty"`
 	TerminalOutput string `json:"terminalOutput,omitempty"`
 }
 
