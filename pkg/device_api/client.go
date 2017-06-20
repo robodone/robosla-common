@@ -97,20 +97,21 @@ func (c *Client) RegisterDevice(userCookie string) (deviceCookie string, err err
 	return deviceCookie, nil
 }
 
-func (c *Client) sendHello(cookie string) error {
+func (c *Client) sendHello(cookie, jobName string) error {
 	return send(c.conn, &Request{
-		Cmd:    "hello",
-		Cookie: cookie,
+		Cmd:     "hello",
+		Cookie:  cookie,
+		JobName: jobName,
 	})
 }
 
-func (c *Client) Hello(cookie string) (machineName string, err error) {
+func (c *Client) Hello(cookie, jobName string) (machineName string, err error) {
 	sub, err := c.SubString("login.deviceName")
 	if err != nil {
 		return "", fmt.Errorf("failed to subscribe for login/deviceName: %v", err)
 	}
 	defer sub.Unsub()
-	if err := c.sendHello(cookie); err != nil {
+	if err := c.sendHello(cookie, jobName); err != nil {
 		return "", fmt.Errorf("failed to send hello: %v", err)
 	}
 	var deviceName string
