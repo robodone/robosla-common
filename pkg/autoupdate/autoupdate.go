@@ -14,16 +14,20 @@ var (
 
 func DisableUpdates() {
 	updatesMu.Lock()
-	defer updatesMu.Unlock()
 	updatesDisabledDepth++
+	depth := updatesDisabledDepth
+	updatesMu.Unlock()
+	log.Printf("Disabled autoupdates, depth: %d", depth)
 }
 
 func EnableUpdates() {
 	updatesMu.Lock()
-	defer updatesMu.Unlock()
 	if updatesDisabledDepth > 0 {
 		updatesDisabledDepth--
 	}
+	depth := updatesDisabledDepth
+	updatesMu.Unlock()
+	log.Printf("EnableUpdates, new depth: %d", depth)
 }
 
 func areUpdatesEnabled() bool {
@@ -40,6 +44,7 @@ func Run(manifestURL, version string, initialDelay, delay time.Duration) {
 	time.Sleep(initialDelay)
 	for {
 		if areUpdatesEnabled() {
+			log.Printf("autoupdate.Run: updates are enabled")
 			needsRestart, err := UpdateCurrentBinaryIfNeeded(manifestURL, version)
 			if err != nil {
 				log.Printf("UpdateCurrentBinaryIfNeeded failed: %v", err)
