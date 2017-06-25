@@ -1,5 +1,7 @@
 package device_api
 
+import "time"
+
 const (
 	StatusOK    = "OK"
 	StatusError = "Error"
@@ -35,10 +37,13 @@ type StringSample struct {
 }
 
 type UplinkMessage struct {
-	Type       string  `json:"type"`
-	JobName    string  `json:"jobName"`
-	Success    bool    `json:"success"`
-	Comment    string  `json:"comment"`
-	Progress   float64 `json:"progress"`
-	FrameIndex int     `json:"frameIndex"`
+	Type       string        `json:"type"`
+	JobName    string        `json:"jobName"`
+	Success    bool          `json:"success"`
+	Comment    string        `json:"comment"`
+	Elapsed    time.Duration `json:elapsed"`
+	Remaining  time.Duration `json:duration"`
+	Progress   float64       `json:"progress"`
+	FrameIndex int           `json:"frameIndex"`
+	NumFrames  int           `json:"numFrames"`
 }
