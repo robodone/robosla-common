@@ -1,5 +1,7 @@
 package opapi
 
+import "time"
+
 type Printer struct {
 	ID          int64  `json:"id,omitempty"`
 	DeviceName  string `json:"deviceName,omitempty"`
@@ -9,10 +11,13 @@ type Printer struct {
 
 type PrinterForFrameIndex struct {
 	FrameIndex int `json:"frameIndex"`
+	NumFrames  int `json:"numFrames"`
 }
 
 type PrinterForProgress struct {
-	Progress float64 `json:"progress"`
+	Progress  float64       `json:"progress"`
+	Elapsed   time.Duration `json:"elapsed"`
+	Remaining time.Duration `json:"remaining"`
 }
 
 type PrinterForVideo struct {
