@@ -7,6 +7,7 @@ type Printer struct {
 	DeviceName  string `json:"deviceName,omitempty"`
 	DisplayName string `json:"displayName,omitempty"`
 	Status      string `json:"status,omitempty"`
+	ResinHexID  string `json:"resinHexID,omitempty"`
 }
 
 type PrinterForFrameIndex struct {
