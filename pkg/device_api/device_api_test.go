@@ -100,7 +100,7 @@ func TestHelloOK(t *testing.T) {
 	client := NewClient(conn1, pubsub.NewNode())
 	defer client.Stop()
 
-	deviceName, err := client.Hello(TestGoodCookie)
+	deviceName, err := client.Hello(TestGoodCookie, "" /*jobName*/)
 	if err != nil {
 		t.Errorf("Hello(%q) failed: %v", TestGoodCookie, err)
 	}
