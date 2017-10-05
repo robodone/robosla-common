@@ -37,14 +37,16 @@ type StringSample struct {
 }
 
 type UplinkMessage struct {
-	Type       string            `json:"type"`
-	JobName    string            `json:"jobName"`
-	Success    bool              `json:"success"`
-	Comment    string            `json:"comment"`
-	Elapsed    time.Duration     `json:elapsed"`
-	Remaining  time.Duration     `json:duration"`
-	Progress   float64           `json:"progress"`
-	FrameIndex int               `json:"frameIndex"`
-	NumFrames  int               `json:"numFrames"`
-	Cameras    map[string]string `json:"cameras"`
+	Type       string        `json:"type"`
+	JobName    string        `json:"jobName"`
+	Success    bool          `json:"success"`
+	Comment    string        `json:"comment"`
+	Elapsed    time.Duration `json:elapsed"`
+	Remaining  time.Duration `json:duration"`
+	Progress   float64       `json:"progress"`
+	FrameIndex int           `json:"frameIndex"`
+	NumFrames  int           `json:"numFrames"`
+
+	// Data URL-encoded camera frames saved by their respective names.
+	Cameras map[string]string `json:"cameras"`
 }
