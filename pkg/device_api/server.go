@@ -41,7 +41,11 @@ func (srv *Server) Run() error {
 			if msg.Type != websocket.TextMessage {
 				log.Printf("Unexpected message type %d, ignoring...", msg.Type)
 			}
-			log.Printf("Server.Run, a message was received: %s", string(msg.Data))
+			tolog := string(msg.Data)
+			if len(tolog) > 500 {
+				tolog = tolog[:300] + "<...-truncated-...>"
+			}
+			log.Printf("Server.Run, a message was received: %s", tolog)
 			srv.dispatch(string(msg.Data))
 		}
 	}
