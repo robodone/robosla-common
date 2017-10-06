@@ -25,6 +25,10 @@ type PrinterForVideo struct {
 	VideoURL string `json:"videoURL"`
 }
 
+type PrinterForMovingState struct {
+	MovingState string `json:"movingState"`
+}
+
 type PrinterForCameras struct {
 	Cameras map[string]string `json:"cameras"`
 }
