@@ -68,7 +68,7 @@ func (ts *TestServerImpl) RegisterDevice(cookie string, resp *Response) error {
 	return errors.New("TestServerImpl.RegisterDevice: not implemented")
 }
 
-func (ts *TestServerImpl) SendTerminalOutput(out string, resp *Response) error {
+func (ts *TestServerImpl) Notify(msg *UplinkMessage, resp *Response) error {
 	return errors.New("TestServerImpl.SendTerminalOutput: not implemented")
 }
 

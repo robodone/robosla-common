@@ -11,7 +11,7 @@ import (
 type Impl interface {
 	RegisterDevice(cookie string, resp *Response) error
 	Hello(cookie, jobName string, resp *Response) error
-	SendTerminalOutput(out string, resp *Response) error
+	Notify(msg *UplinkMessage, resp *Response) error
 }
 
 type Server struct {
@@ -82,8 +82,8 @@ func (srv *Server) dispatch(msg string) {
 		err = srv.impl.RegisterDevice(req.Cookie, &resp)
 	case "hello":
 		err = srv.impl.Hello(req.Cookie, req.JobName, &resp)
-	case "send-terminal-output":
-		err = srv.impl.SendTerminalOutput(req.TerminalOutput, &resp)
+	case "notify":
+		err = srv.impl.Notify(req.Msg, &resp)
 	default:
 		srv.replyUserError(fmt.Sprintf("unsupported command %q", req.Cmd))
 		return

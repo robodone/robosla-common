@@ -124,12 +124,11 @@ func (c *Client) Hello(cookie, jobName string) (machineName string, err error) {
 	return deviceName, nil
 }
 
-func (c *Client) SendTerminalOutput(out string) error {
+func (c *Client) Notify(msg *UplinkMessage) error {
 	return send(c.conn, &Request{
-		Cmd:            "send-terminal-output",
-		TerminalOutput: out,
+		Cmd: "notify",
+		Msg: msg,
 	})
-
 }
 
 func (c *Client) SubString(path string) (*pubsub.StringSub, error) {
