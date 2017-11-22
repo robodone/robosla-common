@@ -47,6 +47,7 @@ type UplinkMessage struct {
 	FrameIndex     int           `json:"frameIndex"`
 	NumFrames      int           `json:"numFrames"`
 	MovingState    string        `json:"movingState"`
+	GripperState   string        `json:"gripperState"`
 	TerminalOutput string        `json:"terminalOutput,omitempty"`
 
 	// Data URL-encoded camera frames saved by their respective names.
