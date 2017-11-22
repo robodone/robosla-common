@@ -29,6 +29,10 @@ type PrinterForMovingState struct {
 	MovingState string `json:"movingState"`
 }
 
+type PrinterForGripperState struct {
+	GripperState string `json:"gripperState"`
+}
+
 type PrinterForCameras struct {
 	Cameras map[string]string `json:"cameras"`
 }
