@@ -47,6 +47,7 @@ type UplinkMessage struct {
 	FrameIndex     int           `json:"frameIndex"`
 	NumFrames      int           `json:"numFrames"`
 	MovingState    string        `json:"movingState"`
+	Pose           []float64     `json:"pose"`
 	GripperState   string        `json:"gripperState"`
 	TerminalOutput string        `json:"terminalOutput,omitempty"`
 

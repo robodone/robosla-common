@@ -26,7 +26,8 @@ type PrinterForVideo struct {
 }
 
 type PrinterForMovingState struct {
-	MovingState string `json:"movingState"`
+	MovingState string    `json:"movingState"`
+	Pose        []float64 `json:"pose"`
 }
 
 type PrinterForGripperState struct {
