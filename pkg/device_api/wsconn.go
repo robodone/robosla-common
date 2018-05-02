@@ -64,7 +64,7 @@ func (wsc *WSConn) In() <-chan *Message {
 func (wsc *WSConn) Send(msg string) error {
 	tolog := msg
 	if len(tolog) > 500 {
-		tolog = tolog[:500] + "<...-truncated-...>"
+		tolog = tolog[:500] + "<...-truncated1-...>"
 	}
 	log.Printf("WSConn.Send(%s)", tolog)
 	return wsc.sock.WriteMessage([]byte(msg))

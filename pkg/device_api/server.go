@@ -43,7 +43,7 @@ func (srv *Server) Run() error {
 			}
 			tolog := string(msg.Data)
 			if len(tolog) > 500 {
-				tolog = tolog[:500] + "<...-truncated-...>"
+				tolog = tolog[:500] + "<...-truncated2-...>"
 			}
 			log.Printf("Server.Run, a message was received: %s", tolog)
 			srv.dispatch(string(msg.Data))
