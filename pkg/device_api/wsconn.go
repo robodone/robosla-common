@@ -41,8 +41,8 @@ func (wsc *WSConn) run() {
 			return
 		}
 		toprint := string(p)
-		if len(toprint) > 300 {
-			toprint = toprint[:300]
+		if len(toprint) > 500 {
+			toprint = toprint[:500]
 		}
 		log.Printf("A message received: %s", toprint)
 		select {
@@ -64,7 +64,7 @@ func (wsc *WSConn) In() <-chan *Message {
 func (wsc *WSConn) Send(msg string) error {
 	tolog := msg
 	if len(tolog) > 500 {
-		tolog = tolog[:300] + "<...-truncated-...>"
+		tolog = tolog[:500] + "<...-truncated-...>"
 	}
 	log.Printf("WSConn.Send(%s)", tolog)
 	return wsc.sock.WriteMessage([]byte(msg))
